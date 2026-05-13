@@ -3,11 +3,15 @@ name: Build Yandex Cloud DDNS
 on:
   push:
     paths:
-      - "nas/**"
+      - "Dockerfile"
+      - "*.sh"
+      - ".dockerignore"
       - ".github/workflows/yandex-cloud-ddns.yml"
   pull_request:
     paths:
-      - "nas/**"
+      - "Dockerfile"
+      - "*.sh"
+      - ".dockerignore"
       - ".github/workflows/yandex-cloud-ddns.yml"
   workflow_dispatch:
 
@@ -50,8 +54,8 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: ./nas
-          file: ./nas/Dockerfile
+          context: .
+          file: ./Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
