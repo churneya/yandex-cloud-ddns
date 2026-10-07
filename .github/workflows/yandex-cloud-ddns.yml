@@ -20,7 +20,7 @@ env:
 
 jobs:
   docker:
-    runs-on: node20
+    runs-on: infra
     permissions:
       contents: read
       packages: write
