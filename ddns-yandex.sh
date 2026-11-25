@@ -96,15 +96,21 @@ get_public_ip() {
 
 get_dns_ip() {
   local output dns_ip count
-  output="$(
+  if ! output="$(
     yc dns zone list-records \
       --id "$YC_DNS_ZONE_ID" \
       --record-name "$DNS_RECORD_NAME" \
       --record-type "$DNS_RECORD_TYPE" \
       --format json
-  )"
+  )"; then
+    error "Could not read DNS record from Yandex Cloud"
+    return 1
+  fi
 
-  count="$(printf '%s' "$output" | jq '.record_sets | length')"
+  if ! count="$(printf '%s' "$output" | jq -er '.record_sets | length')" || ! [[ "$count" =~ ^[0-9]+$ ]]; then
+    error "Invalid DNS records response from Yandex Cloud"
+    return 1
+  fi
   if [ "$count" -eq 0 ]; then
     error "DNS record does not exist: ${DNS_RECORD_NAME} ${DNS_RECORD_TYPE}"
     return 1
@@ -150,7 +156,10 @@ run_once() {
   fi
 
   log "Updating DNS record: ${dns_ip} -> ${public_ip}"
-  update_dns_ip "$public_ip"
+  if ! update_dns_ip "$public_ip"; then
+    error "Could not update DNS record in Yandex Cloud"
+    return 1
+  fi
   log "DNS record updated"
   touch "$DDNS_STATE_FILE"
 }
